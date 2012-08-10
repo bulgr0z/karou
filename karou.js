@@ -1,5 +1,5 @@
-/* - 2012 - @bulgrz @kappuccinoweb */
-
+/* - 2012 - @bulgrz @kappuccinoweb
+ */
 var karou = {
 	settings: {
 		$karou : $('#caroucontainer'), // default
@@ -12,7 +12,7 @@ var karou = {
 		navBtnW : 16, // width des puces nav
 		
 		hasNav : true, // afficher les puces de nav
-		hasPrevNext : false, // afficher precedent/suivant
+		hasPrevNext : false // afficher precedent/suivant
 	},
 	
 	$k : {}, // shortcut de settings.$karou
@@ -22,7 +22,7 @@ var karou = {
 		
 		var $this = this; // sauver l'instance du plugin
 		
-		// remplacer les options par les paramètres user
+		// remplacer les options par les paramÃ¨tres user
 		this.settings = $.extend({}, this.settings, settings);
 		
 		this.settings.$karou= $(elem);
@@ -58,7 +58,7 @@ var karou = {
 			
 			// event proxy pour garder le scope de l'instance
 			nav.on('click', $.proxy(function(e) {
-				var to = $(e.target).attr('data-goto'); // récupère le $(this) de l'event
+				var to = $(e.target).attr('data-goto'); // rÃ©cupÃ¨re le $(this) de l'event
 				this.slideTo(to);	
 			}, this));
 		};
@@ -71,7 +71,7 @@ var karou = {
 		if (!this.settings.hasPrevNext) return false;
 		
 		// ajouter l'elem de prevnext
-		var carouprev = $('<br style="clear:both;"/><div class="carounav clearfix" />').appendTo(this.settings.$papa);
+		var carouprev = $('<div class="carounav clearfix" />').appendTo(this.settings.$papa);
 		
 		var prev = $('<div class="navprev" data-goto="prev" />').appendTo(carouprev);
 		var next = $('<div class="navnext" data-goto="next" />').appendTo(carouprev);
@@ -111,27 +111,35 @@ var karou = {
 		margin		= Math.round(spaceLeft/2);
 		this.$n.find('.karoupuce[data-goto="0"]').css('margin-left', margin+'px');
 				
-	},
+	}
 	
 }
 
 
 if ( typeof Object.create !== 'function') {
 	Object.create = function(o) {
-		function F() {}
+		function F() {};
 		F.prototype = o;
 		return new F();
 	};
 }
 
-// Loader de plugin
-$.plugin = function(name, object) {
-	$.fn[name] = function(options) {
-		return this.each(function() {
-			if (! $.data(this, name)) {
-				$.data(this, name, Object.create(object).init(options, this));
-			}
-		});
+
+(function($) {
+	$.fn.karou = function(options) {
+		// Don't act on absent elements -via Paul Irish's advice
+		if (this.length) {
+			return this.each(function() {
+				// Create a new speaker object via the Prototypal Object.create
+				var mykarou = Object.create(karou);
+
+				// Run the initialization function of the speaker
+				mykarou.init(options, this);
+				// `this` refers to the element
+
+				// Save the instance of the speaker object in the element's data store
+				$.data(this, 'karou', mykarou);
+			});
+		}
 	};
-};
-$.plugin('karou', karou);
+})(jQuery); 
