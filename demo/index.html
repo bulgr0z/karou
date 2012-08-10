@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<head>
+	<title>Karou demo</title>
+	
+	<style>
+		.container {
+			width: 450px;
+			margin: 0 auto;
+		}
+	
+		.caroumain {
+			position: relative;
+			overflow:hidden;
+			width: 450px;
+			height: 300px;
+		}
+		.caroumain #carouhaut, .caroumain #caroubas {
+			width: 9999px;
+			position: absolute;
+			top: 0;
+			left: 0;
+		}
+		.caroumain #carouhaut img, .caroumain #caroubas img { float: left; }
+		
+	
+		.navoff, .navon {
+			float: left;		
+			height: 18px; width: 18px;
+			padding: 20px 5px 20px 5px;
+		}    
+	  
+		.navoff {
+			background: url('img/carouoff.png') no-repeat center center;
+		}
+		.navon, .navoff:hover {
+			background: url('img/carouon.png') no-repeat center center;
+		}
+		
+		.navprev, .navnext {
+			height: 300px;
+			width: 35px;
+			background: red;
+			position: absolute;
+		} 
+		
+		.navprev {
+			background: url('img/prev.png') no-repeat center center;
+			top: 0;
+			left: 0;
+		}
+		
+		.navnext {
+			background: url('img/next.png') no-repeat center center;
+			top: 0;
+			right: 0;
+		}
+	</style>
+	
+</head>
+
+<html>
+	<body>
+		
+	<div class="container">
+			
+		<div class="span3 caroumain">
+			<div id="carouhaut">
+				<img src="img/1.jpg" class="karouel" />
+				<img src="img/2.jpg" class="karouel" />
+				<img src="img/3.jpg" class="karouel" />
+			</div>
+		</div>
+		
+	</div>	
+	
+	<br /><br /><br /><br />
+	
+	<div class="container">
+			
+		<div class="span3 caroumain">
+			<div id="caroubas">
+				<img src="img/1.jpg" class="karouel" />
+				<img src="img/2.jpg" class="karouel" />
+				<img src="img/3.jpg" class="karouel" />
+			</div>
+		</div>
+		
+	</div>	
+		
+	</body>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+	<script src="karou.js"></script>
+	<script>
+		$(function() {
+			$('#carouhaut').karou({ 'hasPrevNext': false,'hasNav': true});
+			$('#caroubas').karou({ 'hasPrevNext': true,'hasNav': false});
+		});
+	</script>
+</html>
