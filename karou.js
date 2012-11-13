@@ -17,6 +17,7 @@ var karou = {
 
     $k : {}, // shortcut de settings.$karou
     $n : {}, // shortcut de navbar
+    loaded : {}, // index des imgs chargées par l'ajax
 
     init: function(settings, elem) {
 
@@ -38,7 +39,40 @@ var karou = {
         if (this.settings.autoplay > 0) this.autoPlay();
     },
 
-    addNav: function() {
+    /* Charge une image avec un ajax
+     *
+     * Appelle this.loadCallback au .load().
+     * Le callback est overwrite a chaque appel ajax
+     * pour éviter une queue d'events
+     */
+    ajaxLoader : function(elem) {
+
+        if (elem.attr('src') == "#") {
+            var img = $('<img src="'+ elem.attr('data-source') +'" class="'+ elem.attr('class') +'"/>');
+
+            img.load($.proxy(function() {
+
+                myIndex = this.$k.children('.karouel').index(elem);
+                this.loaded[myIndex] = true;
+                this.settings.current = myIndex - 1;
+                elem.attr('src', img.attr('src'));
+
+                // Set timeout pour laisser le temps a l'elem de se faire replace
+
+                if (typeof this.loaderCallback !== "undefined") {
+                    //this.loaderCallback.call(this.loaderCallbackParams);
+                    this[this.loaderCallback](this.loaderCallbackParams);
+
+                    delete this.loaderCallback;
+                    delete this.loaderCallbackParams;
+                }
+
+            }, this ));
+        }
+
+    },
+
+    addNav : function() {
 
         if (!this.settings.hasNav) return false;
 
@@ -57,7 +91,6 @@ var karou = {
             this.settings.$navbar = carounav;
             this.$n = carounav;
 
-
             // event proxy pour garder le scope de l'instance
             nav.on('click', $.proxy(function(e) {
                 var to = $(e.target).attr('data-goto'); // récupère le $(this) de l'event
@@ -69,12 +102,22 @@ var karou = {
         this.centerNav();
     },
 
+    isLoaded : function(i) {
+
+        if (this.$k.children('.karouel').eq(i).attr('src') != "#") {
+            return true;
+        }
+
+        return false;
+    },
+
     /* autoplay carou
      *  timing : valeur this.settings.autoplay
      */
     autoPlay : function() {
 
         setTimeout($.proxy(function() {
+
             this.animateTo(this.settings.current + 1);
             this.autoPlay(); // recurse
         }, this ), this.settings.autoplay);
@@ -98,43 +141,48 @@ var karou = {
         }, this));
     },
 
-    animateTo: function(to) {
+    animateTo : function(to) {
 
-        // slide
-        if (this.settings.animation == '') {
-            if (to > (this.settings.elCount - 1) || to < 0) to = 0;
-            var left = ((to * this.settings.carouW) * -1);
-            this.$k.animate({
-                'left' : left+'px'
-            }, 218);
+        console.log('entering animate', to)
+        if (to > (this.settings.elCount - 1) || to < 0) to = 0;
+
+        // Si l'image suivante n'est pas chargée
+        if (!this.isLoaded(to)) {
+            this.loaderCallback = "animateTo"
+            this.loaderCallbackParams = to;
+            this.ajaxLoader(this.$k.children('.karouel').eq(to));
+
+            // Sinon animation
+        } else {
+
+            // slide
+            if (this.settings.animation == '') {
+
+                var left = ((to * this.settings.carouW) * -1);
+                this.$k.animate({
+                    'left' : left+'px'
+                }, 218);
+            }
+
+            // fade
+            if (this.settings.animation == 'fade') {
+
+                var $from   = this.$k.children('.karouel').eq(this.settings.current);
+                var $to     = this.$k.children('.karouel').eq(to);
+
+                this.$k.children('.karouel').not($from).css('opacity', '0');
+
+                $from.stop().animate({
+                    'opacity' : 0,
+                    'queue' : false
+                }, 500);
+
+                $to.stop().animate({
+                    'opacity' : 1,
+                    'queue' : false
+                }, 500);
+            }
         }
-
-        // fade
-        if (this.settings.animation == 'fade') {
-            if (to > (this.settings.elCount - 1) || to < 0) to = 0;
-
-            var $from   = this.$k.children('.karouel').eq(this.settings.current);
-            var $to     = this.$k.children('.karouel').eq(to);
-
-            this.$k.children('.karouel').not($from).hide();
-            $to.css({
-                'display' : 'block',
-                'display' : 'block'
-            })
-
-            $from.animate({
-                'opacity' : 0,
-                'queue' : false
-            }, 218);
-
-            $to.animate({
-                'opacity' : 1,
-                'queue' : false
-            }, 218);
-        }
-
-
-
 
         this.settings.current = to;
         this.updateNav();
@@ -155,7 +203,6 @@ var karou = {
         this.$n.find('.karoupuce[data-goto="0"]').css('margin-left', margin+'px');
 
     }
-
 }
 
 
