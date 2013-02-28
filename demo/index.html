@@ -54,6 +54,16 @@
 			top: 0;
 			right: 0;
 		}
+
+		/* - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + */
+		#caroufade {
+			position: relative;
+		}
+		#caroufade .karouel {
+			position: absolute;
+			top: 0; left: 0; bottom: 0; right: 0;
+		}
+
 	</style>
 	
 </head>
@@ -85,15 +95,36 @@
 			</div>
 		</div>
 		
-	</div>	
-		
+	</div>
+
+	<br /><br /><br /><br />
+
+	<div class="container">
+
+		<div class="span3 caroumain">
+			<div id="caroufade">
+				<div class="karouel"><img src="img/1.jpg" /></div>
+				<div class="karouel"><img src="img/2.jpg" /></div>
+				<div class="karouel"><img src="img/3.jpg" /></div>
+			</div>
+		</div>
+
+	</div>
+
 	</body>
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
-	<script src="karou.js"></script>
+	<script src="../karou.js"></script>
 	<script>
 		$(function() {
-			$('#carouhaut').karou({ 'hasPrevNext': false,'hasNav': true});
-			$('#caroubas').karou({ 'hasPrevNext': true,'hasNav': false});
+			$('#carouhaut').karou({ 'hasPrevNext': false,'hasNav': true });
+			$('#caroubas').karou({ 'hasPrevNext': true,'hasNav': false });
+			$('#caroufade').karou({
+				'hasPrevNext': false,
+				'hasNav': false,
+				'animation': 'fade',
+				'duration' : 500,
+				'keyboard' : true
+			});
 		});
 	</script>
 </html>

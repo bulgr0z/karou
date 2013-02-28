@@ -1,228 +1,213 @@
 /* - 2012 - @bulgrz @kappuccinoweb
  */
 var karou = {
-    settings: {
-        $karou : $('#caroucontainer'), // default
-        $papa : {}, // parent direct de $karou
-        $navbar : {}, // ref barre de nav
+	settings: {
+		$karou : $('#caroucontainer'), // default
+		$papa : {}, // parent direct de $karou
+		$navbar : {}, // ref barre de nav
 
-        elCount : 0, // nb d'elements
-        carouW : 0, // width du carou
-        current : 0, // elem courant
-        navBtnW : 16, // width des puces nav
+		elCount : 0, // nb d'elements
+		carouW : 0, // width du carou
+		current : 0, // elem courant
+		navBtnW : 28, // width des puces nav
+		duration : 500, // duration autoplay
 
-        hasNav : true, // afficher les puces de nav
-        hasPrevNext : false // afficher precedent/suivant
-    },
+		hasNav : true, // afficher les puces de nav
+		hasPrevNext : false, // afficher precedent/suivant
+		autoplay: false,
 
-    $k : {}, // shortcut de settings.$karou
-    $n : {}, // shortcut de navbar
-    loaded : {}, // index des imgs chargées par l'ajax
+		animation : 'slide', // default animation
+		keyboard  : false // keyboard slide
+	},
 
-    init: function(settings, elem) {
+	$k : {}, // shortcut de settings.$karou
+	$n : {}, // shortcut de navbar
 
-        var $this = this; // sauver l'instance du plugin
+	init: function(settings, elem) {
 
-        // remplacer les options par les paramètres user
-        this.settings = $.extend({}, this.settings, settings);
+		var $this = this; // sauver l'instance du plugin
 
-        this.settings.$karou= $(elem);
-        this.$k				= $(elem);
-        this.settings.$papa	= $(elem).parent();
+		// remplacer les options par les paramètres user
+		this.settings = $.extend({}, this.settings, settings);
 
-        this.settings.elCount 	= this.$k.find('.karouel').length;
-        this.settings.carouW 	= this.$k.find('.karouel').width();
+		this.settings.$karou= $(elem);
+		this.$k				= $(elem);
+		this.settings.$papa	= $(elem).parent();
 
-        this.addNav();
-        this.addPrevNext();
+		this.$els				= $(elem).find('.karouel');
+		this.settings.elCount 	= this.$k.find('.karouel').length;
+		this.settings.carouW 	= this.$k.find('.karouel').width();
 
-        if (this.settings.autoplay > 0) this.autoPlay();
-    },
+		this.addNav();
+		this.addPrevNext();
 
-    /* Charge une image avec un ajax
-     *
-     * Appelle this.loadCallback au .load().
-     * Le callback est overwrite a chaque appel ajax
-     * pour éviter une queue d'events
-     */
-    ajaxLoader : function(elem) {
+		this.autoplay();
 
-        if (elem.attr('src') == "#") {
-            var img = $('<img src="'+ elem.attr('data-source') +'" class="'+ elem.attr('class') +'"/>');
+		if (this.settings.keyboard) this.bindKeypress();
+	},
 
-            img.load($.proxy(function() {
+	addNav: function() {
 
-                myIndex = this.$k.children('.karouel').index(elem);
-                this.loaded[myIndex] = true;
-                this.settings.current = myIndex - 1;
-                elem.attr('src', img.attr('src'));
+		if (!this.settings.hasNav) return false;
 
-                // Set timeout pour laisser le temps a l'elem de se faire replace
+		// ajouter l'elem de nav
+		var carounav = $('<div class="carounav clearfix" />').insertAfter(this.settings.$papa);
+		$('<br style="clear:both;"/>').insertBefore(carounav);
 
-                if (typeof this.loaderCallback !== "undefined") {
-                    //this.loaderCallback.call(this.loaderCallbackParams);
-                    this[this.loaderCallback](this.loaderCallbackParams);
+		// Binder les puces
+		for (var i=0; i < this.settings.elCount; i++) {
+			if (i === 0) {
+				var nav = $('<div class="navon karoupuce" data-goto="'+i+'" />').appendTo(carounav);
+			} else {
+				var nav = $('<div class="navoff karoupuce" data-goto="'+i+'" />').appendTo(carounav);
+			}
 
-                    delete this.loaderCallback;
-                    delete this.loaderCallbackParams;
-                }
+			this.settings.$navbar = carounav;
+			this.$n = carounav;
 
-            }, this ));
-        }
 
-    },
+			// event proxy pour garder le scope de l'instance
+			nav.on('click', $.proxy(function(e) {
+				var to = $(e.target).attr('data-goto'); // récupère le $(this) de l'event
+				this.slideTo(to);
+			}, this));
+		};
 
-    addNav : function() {
+		// centrer les puces
+		this.centerNav();
+	},
 
-        if (!this.settings.hasNav) return false;
+	bindKeypress: function() {
 
-        // ajouter l'elem de nav
-        var carounav = $('<div class="carounav clearfix" />').insertAfter(this.settings.$papa);
-        $('<br style="clear:both;"/>').insertBefore(carounav);
+		$(document).on('keyup', $.proxy(function(e) {
+			if (e.keyCode == 37) {
+				this.animateTo(this.settings.current - 1);
+			}
+			if (e.keyCode == 39) {
+				this.animateTo(this.settings.current + 1);
+			}
+		}, this ));
+	},
 
-        // Binder les puces
-        for (var i=0; i < this.settings.elCount; i++) {
-            if (i === 0) {
-                var nav = $('<div class="navon karoupuce" data-goto="'+i+'" />').appendTo(carounav);
-            } else {
-                var nav = $('<div class="navoff karoupuce" data-goto="'+i+'" />').appendTo(carounav);
-            }
+	addPrevNext: function() {
+		if (!this.settings.hasPrevNext) return false;
 
-            this.settings.$navbar = carounav;
-            this.$n = carounav;
+		// ajouter l'elem de prevnext
+		var carouprev = $('<div class="carounav clearfix" />').appendTo(this.settings.$papa);
 
-            // event proxy pour garder le scope de l'instance
-            nav.on('click', $.proxy(function(e) {
-                var to = $(e.target).attr('data-goto'); // récupère le $(this) de l'event
-                this.animateTo(to);
-            }, this));
-        };
+		var prev = $('<div class="navprev" data-goto="prev" />').appendTo(carouprev);
+		var next = $('<div class="navnext" data-goto="next" />').appendTo(carouprev);
 
-        // centrer les puces
-        this.centerNav();
-    },
+		prev.on('click', $.proxy(function() {
+			this.animateTo(this.settings.current - 1);
+		}, this));
 
-    isLoaded : function(i) {
+		next.on('click', $.proxy(function() {
+			this.animateTo(this.settings.current + 1);
+		}, this));
+	},
 
-        if (this.$k.children('.karouel').eq(i).attr('src') != "#") {
-            return true;
-        }
+	animateTo: function(to) {
 
-        return false;
-    },
+		switch(this.settings.animation) {
+			case 'slide' :
+				this.slideTo(to);
+				break;
+			case 'fade' :
+				this.fadeTo(to);
+				break;
+			default:
+				this.slideTo(to);
+		}
 
-    /* autoplay carou
-     *  timing : valeur this.settings.autoplay
-     */
-    autoPlay : function() {
+	},
 
-        setTimeout($.proxy(function() {
+	slideTo: function(to) {
+		if (to > (this.settings.elCount - 1) || to < 0) return false;
 
-            this.animateTo(this.settings.current + 1);
-            this.autoPlay(); // recurse
-        }, this ), this.settings.autoplay);
-    },
+		var left = ((to * this.settings.carouW) * -1);
+		this.settings.$karou.animate({
+			'left' : left+'px'
+		}, 500);
 
-    addPrevNext: function() {
-        if (!this.settings.hasPrevNext) return false;
+		this.settings.current = to;
+		this.updateNav();
+	},
 
-        // ajouter l'elem de prevnext
-        var carouprev = $('<div class="carounav clearfix" />').appendTo(this.settings.$papa);
+	fadeTo: function(to) {
 
-        var prev = $('<div class="navprev" data-goto="prev" />').appendTo(carouprev);
-        var next = $('<div class="navnext" data-goto="next" />').appendTo(carouprev);
+		if (this.settings.current < this.settings.elCount-1) {
+			this.settings.current += 1;
+		} else {
+			this.settings.current = 0;
+		}
 
-        prev.on('click', $.proxy(function() {
-            this.animateTo(this.settings.current - 1);
-        }, this));
+		this.$randel = this.$els.eq(this.settings.current);
 
-        next.on('click', $.proxy(function() {
-            this.animateTo(this.settings.current + 1);
-        }, this));
-    },
+		//this.settings.current += 1;
 
-    animateTo : function(to) {
+		this.$randel.animate({
+			'opacity' : 1
+		}, { duration : this.settings.duration, queue : false });
 
-        console.log('entering animate', to)
-        if (to > (this.settings.elCount - 1) || to < 0) to = 0;
+		this.$k.find('.karouel').not(this.$randel).animate({
+			'opacity' : 0
+		}, { duration : this.settings.duration, queue : false });
 
-        // Si l'image suivante n'est pas chargée
-        if (!this.isLoaded(to)) {
-            this.loaderCallback = "animateTo"
-            this.loaderCallbackParams = to;
-            this.ajaxLoader(this.$k.children('.karouel').eq(to));
+	},
 
-            // Sinon animation
-        } else {
+	updateNav: function() {
+		if (!this.settings.hasNav) return false;
 
-            // slide
-            if (this.settings.animation == '') {
+		this.$n.find('.karoupuce').removeClass('navon').addClass('navoff');
+		this.$n.find('.karoupuce[data-goto="'+this.settings.current+'"]').addClass('navon')
+	},
 
-                var left = ((to * this.settings.carouW) * -1);
-                this.$k.animate({
-                    'left' : left+'px'
-                }, 218);
-            }
+	centerNav: function() {
 
-            // fade
-            if (this.settings.animation == 'fade') {
+		this.settings.navBtnW = $('.karoupuce').outerWidth();
+		totalNavW 	= this.settings.elCount * this.settings.navBtnW;
+		spaceLeft 	= this.settings.$navbar.width() - totalNavW;
+		margin		= Math.round(spaceLeft/2);
+		this.$n.find('.karoupuce[data-goto="0"]').css('margin-left', margin+'px');
 
-                var $from   = this.$k.children('.karouel').eq(this.settings.current);
-                var $to     = this.$k.children('.karouel').eq(to);
+	},
 
-                this.$k.children('.karouel').not($from).css('opacity', '0');
+	autoplay : function() {
 
-                $from.stop().animate({
-                    'opacity' : 0,
-                    'queue' : false
-                }, 500);
+		if (!this.settings.autoplay) return;
 
-                $to.stop().animate({
-                    'opacity' : 1,
-                    'queue' : false
-                }, 500);
-            }
-        }
+		this.settings.autoplay = setInterval($.proxy(function() {
 
-        this.settings.current = to;
-        this.updateNav();
-    },
+			if (this.settings.current < this.settings.elCount-1) {
+				this.animateTo(this.settings.current + 1);
+			} else {
+				this.animateTo(0);
+			}
 
-    updateNav: function() {
-        if (!this.settings.hasNav) return false;
+		}, this), this.settings.duration)
+	}
 
-        this.$n.find('.karoupuce').removeClass('navon').addClass('navoff');
-        this.$n.find('.karoupuce[data-goto="'+this.settings.current+'"]').addClass('navon');
-    },
-
-    centerNav: function() {
-
-        totalNavW 	= this.settings.elCount * this.settings.navBtnW;
-        spaceLeft 	= this.settings.$navbar.width() - totalNavW;
-        margin		= Math.round(spaceLeft/2);
-        this.$n.find('.karoupuce[data-goto="0"]').css('margin-left', margin+'px');
-
-    }
 }
 
 
 if ( typeof Object.create !== 'function') {
-    Object.create = function(o) {
-        function F() {};
-        F.prototype = o;
-        return new F();
-    };
+	Object.create = function(o) {
+		function F() {};
+		F.prototype = o;
+		return new F();
+	};
 }
 
 
 (function($) {
-    $.fn.karou = function(options) {
-        if (this.length) {
-            return this.each(function() {
-                var mykarou = Object.create(karou);
-                mykarou.init(options, this);
-                $.data(this, 'karou', mykarou);
-            });
-        }
-    };
-})(jQuery);
+	$.fn.karou = function(options) {
+		if (this.length) {
+			return this.each(function() {
+				var mykarou = Object.create(karou);
+				mykarou.init(options, this);
+				$.data(this, 'karou', mykarou);
+			});
+		}
+	};
+})(jQuery); 
