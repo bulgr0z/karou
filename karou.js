@@ -86,10 +86,10 @@ var karou = {
 
 		$(document).on('keyup', $.proxy(function(e) {
 			if (e.keyCode == 37) {
-				this.animateTo(this.settings.current - 1);
+				this.animatePrevious();
 			}
 			if (e.keyCode == 39) {
-				this.animateTo(this.settings.current + 1);
+				this.animateNext();
 			}
 		}, this ));
 	},
@@ -103,17 +103,23 @@ var karou = {
 		var prev = $('<div class="navprev" data-goto="prev" />').appendTo(carouprev);
 		var next = $('<div class="navnext" data-goto="next" />').appendTo(carouprev);
 
-		prev.on('click', $.proxy(function() {
-			this.animateTo(this.settings.current - 1);
-		}, this));
+		prev.on('click', this.animatePrevious);
+		next.on('click', this.animateNext);
+	},
 
-		next.on('click', $.proxy(function() {
-			this.animateTo(this.settings.current + 1);
-		}, this));
+	animateNext: function(){
+		var next = this.settings.current + 1;
+		if(next > this.settings.elCount-1) next = 0;
+		this.animateTo(next);
+	},
+
+	animatePrevious: function(){
+		var prev = this.settings.current - 1;
+		if(prev < 0) prev = this.settings.elCount-1;
+		this.animateTo(prev);
 	},
 
 	animateTo: function(to) {
-
 		switch(this.settings.animation) {
 			case 'slide' :
 				this.slideTo(to);
@@ -141,15 +147,7 @@ var karou = {
 
 	fadeTo: function(to) {
 
-		if (this.settings.current < this.settings.elCount-1) {
-			this.settings.current += 1;
-		} else {
-			this.settings.current = 0;
-		}
-
-		this.$randel = this.$els.eq(this.settings.current);
-
-		//this.settings.current += 1;
+		this.$randel = this.$els.eq(to);
 
 		this.$randel.animate({
 			'opacity' : 1
@@ -159,6 +157,7 @@ var karou = {
 			'opacity' : 0
 		}, { duration : this.settings.duration, queue : false });
 
+		this.settings.current = to;
 	},
 
 	updateNav: function() {
@@ -184,13 +183,10 @@ var karou = {
 
 		this.settings.autoplay = setInterval($.proxy(function() {
 
-			if (this.settings.current < this.settings.elCount-1) {
-				this.animateTo(this.settings.current + 1);
-			} else {
-				this.animateTo(0);
-			}
+			this.animateNext();
 
 		}, this), this.settings.duration)
+
 	}
 
 }
