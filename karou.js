@@ -44,6 +44,11 @@ var karou = {
 		this.autoplay();
 
 		if (this.settings.keyboard) this.bindKeypress();
+
+		if(this.settings.animation == 'fade'){
+			$this.$els.css('opacity', 0);
+			$this.$els.eq(0).css('opacity', 1);
+		}
 	},
 
 	addNav: function() {
