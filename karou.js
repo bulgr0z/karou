@@ -11,6 +11,7 @@ var karou = {
 		current : 0, // elem courant
 		navBtnW : 28, // width des puces nav
 		duration : 500, // duration autoplay
+		interval: 0, // Intervant dans le autoplau
 
 		hasNav : true, // afficher les puces de nav
 		hasPrevNext : false, // afficher precedent/suivant
@@ -190,7 +191,7 @@ var karou = {
 				this.animateTo(0);
 			}
 
-		}, this), this.settings.duration)
+		}, this), this.settings.interval)
 	}
 
 }
