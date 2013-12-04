@@ -116,11 +116,6 @@ var karou = {
 
 	animateTo: function(to) {
 
-		if(this.settings.autoreverse){
-			if(to > this.settings.elCount - 1) to = 0;
-			if(to < 0) to = this.settings.elCount - 1;
-		}
-		
 		switch(this.settings.animation) {
 			case 'slide' :
 				this.slideTo(to);
@@ -135,6 +130,12 @@ var karou = {
 	},
 
 	slideTo: function(to) {
+
+		if(this.settings.autoreverse){
+			if(to > this.settings.elCount - 1) to = 0;
+			if(to < 0) to = this.settings.elCount - 1;
+		}
+		
 		if (to > (this.settings.elCount - 1) || to < 0) return false;
 
 		var left = ((to * this.settings.carouW) * -1);
