@@ -16,6 +16,7 @@ var karou = {
 		hasNav : true, // afficher les puces de nav
 		hasPrevNext : false, // afficher precedent/suivant
 		autoplay: false,
+		autoreverse: true,
 
 		animation : 'slide', // default animation
 		keyboard  : false // keyboard slide
@@ -115,6 +116,11 @@ var karou = {
 
 	animateTo: function(to) {
 
+		if(this.settings.autoreverse){
+			if(to > this.settings.elCount - 1) to = 0;
+			if(to < 0) to = this.settings.elCount - 1;
+		}
+		
 		switch(this.settings.animation) {
 			case 'slide' :
 				this.slideTo(to);
