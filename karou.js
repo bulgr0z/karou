@@ -43,6 +43,11 @@ var karou = {
 		this.addNav();
 		this.addPrevNext();
 
+		if (this.settings.current > 0) {
+			var left = ((this.settings.current * this.settings.carouW) * -1);
+			this.settings.$karou.css('left', left);
+		}
+
 		this.autoplay();
 
 		if (this.settings.keyboard) this.bindKeypress();
